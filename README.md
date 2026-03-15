@@ -130,7 +130,7 @@ python pipeline.py
 #   outputs/pipeline_summary.png
 ```
 
-Or run interactively in Google Colab -- no local setup required.
+No local Python installation required -- all four cells can be run directly in [Google Colab](https://colab.research.google.com) by pasting the code from `pipeline.py` into a new notebook.
 
 ---
 
