@@ -79,14 +79,24 @@ meeting_transcript.txt
 
 | Ticket | Type | Priority | Assignee | Due |
 |---|---|---|---|---|
-| AUTO-001 | Bug | **High** | James Okafor | 2026-03-18 |
-| AUTO-002 | Task | **High** | Priya Mehta | 2026-03-19 |
-| AUTO-003 | Task | Medium | Tom Bergmann | 2026-03-15 |
-| AUTO-004 | Task | Medium | Aisha Diallo | 2026-03-20 |
-| AUTO-005 | Story | Medium | Sarah Chen | 2026-03-29 |
-| AUTO-006 | Story | Medium | Sarah + James | 2026-03-29 |
-| AUTO-007 | Task | Medium | James Okafor | 2026-03-16 |
-| AUTO-008 | Task | Medium | Sarah Chen | 2026-03-17 |
+| AUTO-001 | Bug | **High** | James Okafor | Wed after meeting |
+| AUTO-002 | Task | **High** | Priya Mehta | Thu after meeting |
+| AUTO-003 | Task | Medium | Tom Bergmann | Same day |
+| AUTO-004 | Task | Medium | Aisha Diallo | Fri after meeting |
+| AUTO-005 | Story | Medium | Sarah Chen | 2 weeks out |
+| AUTO-006 | Story | Medium | Sarah + James | 2 weeks out |
+| AUTO-007 | Task | Medium | James Okafor | Mon after meeting |
+| AUTO-008 | Task | Medium | Sarah Chen | Tue after meeting |
+```
+
+And directly above the table, change the line that reads:
+```
+**8 tickets generated in under 1 second:**
+```
+
+To:
+```
+**8 tickets generated in under 1 second. Due dates calculated dynamically from meeting date:**
 
 ---
 
