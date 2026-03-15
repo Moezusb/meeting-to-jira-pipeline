@@ -1,0 +1,106 @@
+
+MEETING TRANSCRIPT
+Date: March 14, 2026
+Meeting Type: Sprint Planning + Product Review
+Attendees: Sarah Chen (Product Lead), James Okafor (Engineering Lead),
+           Priya Mehta (QA Lead), Tom Bergmann (Customer Success), 
+           Aisha Diallo (Design Lead)
+Duration: 52 minutes
+
+---
+
+SARAH: Okay let's get started. First thing -- the Zendesk integration bug 
+that Tom flagged last week. Tom, can you give us the latest?
+
+TOM: Yeah so we have three enterprise clients who can't export their data 
+to CSV properly. The fields are getting truncated at 256 characters. 
+Harlow Logistics flagged it first, then Meridian Technologies and 
+Northgate Financial both reported the same thing yesterday. This is 
+blocking their weekly reporting runs. It's high priority.
+
+JAMES: I know what that is. It's the legacy export handler -- we never 
+updated the character limit when we moved to the new schema. I can have 
+a fix in by Wednesday. I'll need Priya to run regression on the export 
+module before we ship.
+
+PRIYA: Fine, I can do that Thursday morning. Just make sure the fix is 
+in the staging environment by Wednesday EOD.
+
+SARAH: Great. James own the fix, Priya owns regression, target is 
+Thursday EOD for staging sign-off. Tom can you send a holding message 
+to those three clients today?
+
+TOM: Already drafted, will send after this call.
+
+SARAH: Perfect. Second item -- the onboarding flow redesign. Aisha where 
+are we?
+
+AISHA: Designs are 90% done. The main blocker is we haven't agreed on 
+the empty state copy for the dashboard. I need a decision today otherwise 
+I can't hand off to James's team by Friday.
+
+SARAH: Let's just decide now. I want something that's directive, not 
+generic. Something like "Start your first trial -- add your protocol here." 
+Can we go with that direction?
+
+AISHA: Yes that works. I'll finalize the designs today and hand off 
+to James by Friday EOD.
+
+JAMES: We can start implementation next sprint if handoff lands Friday.
+
+SARAH: Good. Aisha owns handoff by Friday EOD, James implementation 
+starts next sprint. Third -- Priya, the automated test coverage report 
+you mentioned async. What do you need?
+
+PRIYA: I just need someone to set up a recurring Confluence page that 
+auto-populates with our test coverage metrics every two weeks. Right now 
+I'm doing it manually and it takes me two hours each time. If someone 
+can set up the automation I can give them the data source.
+
+SARAH: That's a perfect automation candidate. I'll take that one. 
+I'll have a working automation by end of next week.
+
+JAMES: While we're on automation -- we still don't have a proper 
+process for syncing Zendesk tickets to Jira when they hit a certain 
+severity threshold. Right now Tom is copying and pasting manually.
+
+TOM: It takes me about 45 minutes every morning. It's brutal.
+
+SARAH: Okay let's fix that. James and I will spec out the integration 
+this week. Aiming to have something built in two weeks.
+
+SARAH: Last item -- release notes for the v2.4 launch next Friday. 
+Tom, your team needs the client-facing version by Wednesday.
+
+TOM: Correct, Wednesday gives us time to review before it goes out.
+
+SARAH: James can you have the technical changelog to me by Monday EOD?
+
+JAMES: Yes, Monday EOD works.
+
+SARAH: Great. I'll transform it into the client-facing version Tuesday 
+and get it to Tom by Tuesday EOD. That gives him buffer.
+
+AISHA: Should I include the onboarding UI changes in the release notes 
+even if the full redesign isn't shipping yet?
+
+SARAH: Good catch -- no. Only include what's actually in v2.4. 
+The redesign is next sprint.
+
+SARAH: Okay I think that's everything. Let me recap the actions before 
+we close...
+
+ACTION ITEMS RECAP:
+- James: Fix CSV export truncation bug, staging by Wednesday EOD
+- Priya: Regression testing on export module, sign-off by Thursday EOD
+- Tom: Send holding message to Harlow Logistics, Meridian Technologies, 
+  Northgate Financial today
+- Aisha: Finalize onboarding designs, hand off to engineering Friday EOD
+- Sarah: Build Confluence auto-population automation by end of next week
+- Sarah + James: Spec Zendesk-to-Jira severity integration this week, 
+  build in two weeks
+- James: Technical changelog for v2.4 by Monday EOD
+- Sarah: Client-facing release notes by Tuesday EOD
+
+---
+END OF TRANSCRIPT

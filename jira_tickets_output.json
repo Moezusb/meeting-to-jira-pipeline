@@ -1,0 +1,197 @@
+{
+  "pipeline_version": "1.0",
+  "source_transcript": "meeting_transcript.txt",
+  "generated_at": "2026-03-15 04:44",
+  "total_tickets": 8,
+  "tickets": [
+    {
+      "ticket_id": "AUTO-001",
+      "summary": "Fix CSV export truncation bug, staging by Wednesday EOD",
+      "issue_type": "Bug",
+      "priority": "High",
+      "status": "To Do",
+      "assignees": [
+        {
+          "name": "James Okafor",
+          "role": "Engineering Lead",
+          "jira_id": "james.okafor"
+        }
+      ],
+      "due_date": "2026-03-18",
+      "context": "Three enterprise clients affected: Harlow Logistics, Meridian Technologies, Northgate Financial. Fields truncated at 256 chars. Legacy export handler issue.",
+      "labels": [
+        "auto-generated",
+        "sprint-planning",
+        "meeting-2026-03-14"
+      ],
+      "source": "Sprint Planning + Product Review \u2014 March 14 2026",
+      "generated_at": "2026-03-15 04:44"
+    },
+    {
+      "ticket_id": "AUTO-002",
+      "summary": "Regression testing on export module, sign-off by Thursday EOD",
+      "issue_type": "Task",
+      "priority": "High",
+      "status": "To Do",
+      "assignees": [
+        {
+          "name": "Priya Mehta",
+          "role": "QA Lead",
+          "jira_id": "priya.mehta"
+        }
+      ],
+      "due_date": "2026-03-19",
+      "context": "Dependent on James completing bug fix in staging by Wednesday EOD. Full regression on export module required before ship.",
+      "labels": [
+        "auto-generated",
+        "sprint-planning",
+        "meeting-2026-03-14"
+      ],
+      "source": "Sprint Planning + Product Review \u2014 March 14 2026",
+      "generated_at": "2026-03-15 04:44"
+    },
+    {
+      "ticket_id": "AUTO-003",
+      "summary": "Send holding message to Harlow Logistics, Meridian Technologies, Northgate Financial",
+      "issue_type": "Task",
+      "priority": "Medium",
+      "status": "To Do",
+      "assignees": [
+        {
+          "name": "Tom Bergmann",
+          "role": "Customer Success",
+          "jira_id": "tom.bergmann"
+        }
+      ],
+      "due_date": "2026-03-15",
+      "context": "Client communication to acknowledge CSV export issue. Message already drafted as of meeting date.",
+      "labels": [
+        "auto-generated",
+        "sprint-planning",
+        "meeting-2026-03-14"
+      ],
+      "source": "Sprint Planning + Product Review \u2014 March 14 2026",
+      "generated_at": "2026-03-15 04:44"
+    },
+    {
+      "ticket_id": "AUTO-004",
+      "summary": "Finalize onboarding redesign, hand off to engineering by Friday EOD",
+      "issue_type": "Task",
+      "priority": "Medium",
+      "status": "To Do",
+      "assignees": [
+        {
+          "name": "Aisha Diallo",
+          "role": "Design Lead",
+          "jira_id": "aisha.diallo"
+        }
+      ],
+      "due_date": "2026-03-20",
+      "context": "Empty state copy agreed in meeting: directive tone, e.g. Start your first trial. Designs 90% complete at time of meeting.",
+      "labels": [
+        "auto-generated",
+        "sprint-planning",
+        "meeting-2026-03-14"
+      ],
+      "source": "Sprint Planning + Product Review \u2014 March 14 2026",
+      "generated_at": "2026-03-15 04:44"
+    },
+    {
+      "ticket_id": "AUTO-005",
+      "summary": "Build Confluence auto-population automation for test coverage metrics",
+      "issue_type": "Story",
+      "priority": "Medium",
+      "status": "To Do",
+      "assignees": [
+        {
+          "name": "Sarah Chen",
+          "role": "Product Lead",
+          "jira_id": "sarah.chen"
+        }
+      ],
+      "due_date": "2026-03-29",
+      "context": "Currently a 2-hour manual task every two weeks. Priya will provide the data source. Target: recurring Confluence page updated automatically.",
+      "labels": [
+        "auto-generated",
+        "sprint-planning",
+        "meeting-2026-03-14"
+      ],
+      "source": "Sprint Planning + Product Review \u2014 March 14 2026",
+      "generated_at": "2026-03-15 04:44"
+    },
+    {
+      "ticket_id": "AUTO-006",
+      "summary": "Spec and build Zendesk-to-Jira severity threshold integration",
+      "issue_type": "Story",
+      "priority": "Medium",
+      "status": "To Do",
+      "assignees": [
+        {
+          "name": "Sarah Chen",
+          "role": "Product Lead",
+          "jira_id": "sarah.chen"
+        },
+        {
+          "name": "James Okafor",
+          "role": "Engineering Lead",
+          "jira_id": "james.okafor"
+        }
+      ],
+      "due_date": "2026-03-29",
+      "context": "Currently Tom manually copies Zendesk tickets to Jira each morning, taking 45 minutes. Spec this week, build in two weeks.",
+      "labels": [
+        "auto-generated",
+        "sprint-planning",
+        "meeting-2026-03-14"
+      ],
+      "source": "Sprint Planning + Product Review \u2014 March 14 2026",
+      "generated_at": "2026-03-15 04:44"
+    },
+    {
+      "ticket_id": "AUTO-007",
+      "summary": "Deliver technical changelog for v2.4 by Monday EOD",
+      "issue_type": "Task",
+      "priority": "Medium",
+      "status": "To Do",
+      "assignees": [
+        {
+          "name": "James Okafor",
+          "role": "Engineering Lead",
+          "jira_id": "james.okafor"
+        }
+      ],
+      "due_date": "2026-03-16",
+      "context": "Required input for client-facing release notes. Sarah needs this to prepare the customer version by Tuesday.",
+      "labels": [
+        "auto-generated",
+        "sprint-planning",
+        "meeting-2026-03-14"
+      ],
+      "source": "Sprint Planning + Product Review \u2014 March 14 2026",
+      "generated_at": "2026-03-15 04:44"
+    },
+    {
+      "ticket_id": "AUTO-008",
+      "summary": "Transform technical changelog into client-facing release notes for v2.4",
+      "issue_type": "Task",
+      "priority": "Medium",
+      "status": "To Do",
+      "assignees": [
+        {
+          "name": "Sarah Chen",
+          "role": "Product Lead",
+          "jira_id": "sarah.chen"
+        }
+      ],
+      "due_date": "2026-03-17",
+      "context": "Based on James technical changelog. Only include v2.4 items -- onboarding redesign is NOT in this release. Deliver to Tom by Tuesday EOD.",
+      "labels": [
+        "auto-generated",
+        "sprint-planning",
+        "meeting-2026-03-14"
+      ],
+      "source": "Sprint Planning + Product Review \u2014 March 14 2026",
+      "generated_at": "2026-03-15 04:44"
+    }
+  ]
+}
