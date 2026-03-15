@@ -75,7 +75,7 @@ meeting_transcript.txt
 
 ![Pipeline Summary](outputs/pipeline_summary.png)
 
-**8 tickets generated in under 1 second:**
+**8 tickets generated in under 1 second. Due dates calculated dynamically from meeting date:**
 
 | Ticket | Type | Priority | Assignee | Due |
 |---|---|---|---|---|
@@ -88,15 +88,6 @@ meeting_transcript.txt
 | AUTO-007 | Task | Medium | James Okafor | Mon after meeting |
 | AUTO-008 | Task | Medium | Sarah Chen | Tue after meeting |
 ```
-
-And directly above the table, change the line that reads:
-```
-**8 tickets generated in under 1 second:**
-```
-
-To:
-```
-**8 tickets generated in under 1 second. Due dates calculated dynamically from meeting date:**
 
 ---
 
