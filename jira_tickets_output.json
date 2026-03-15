@@ -1,7 +1,7 @@
 {
   "pipeline_version": "1.0",
   "source_transcript": "meeting_transcript.txt",
-  "generated_at": "2026-03-15 04:44",
+  "generated_at": "2026-03-15 06:05",
   "total_tickets": 8,
   "tickets": [
     {
@@ -25,7 +25,7 @@
         "meeting-2026-03-14"
       ],
       "source": "Sprint Planning + Product Review \u2014 March 14 2026",
-      "generated_at": "2026-03-15 04:44"
+      "generated_at": "2026-03-15 06:05"
     },
     {
       "ticket_id": "AUTO-002",
@@ -48,7 +48,7 @@
         "meeting-2026-03-14"
       ],
       "source": "Sprint Planning + Product Review \u2014 March 14 2026",
-      "generated_at": "2026-03-15 04:44"
+      "generated_at": "2026-03-15 06:05"
     },
     {
       "ticket_id": "AUTO-003",
@@ -71,7 +71,7 @@
         "meeting-2026-03-14"
       ],
       "source": "Sprint Planning + Product Review \u2014 March 14 2026",
-      "generated_at": "2026-03-15 04:44"
+      "generated_at": "2026-03-15 06:05"
     },
     {
       "ticket_id": "AUTO-004",
@@ -87,14 +87,14 @@
         }
       ],
       "due_date": "2026-03-20",
-      "context": "Empty state copy agreed in meeting: directive tone, e.g. Start your first trial. Designs 90% complete at time of meeting.",
+      "context": "Empty state copy agreed in meeting: directive tone. Designs 90% complete at time of meeting.",
       "labels": [
         "auto-generated",
         "sprint-planning",
         "meeting-2026-03-14"
       ],
       "source": "Sprint Planning + Product Review \u2014 March 14 2026",
-      "generated_at": "2026-03-15 04:44"
+      "generated_at": "2026-03-15 06:05"
     },
     {
       "ticket_id": "AUTO-005",
@@ -117,7 +117,7 @@
         "meeting-2026-03-14"
       ],
       "source": "Sprint Planning + Product Review \u2014 March 14 2026",
-      "generated_at": "2026-03-15 04:44"
+      "generated_at": "2026-03-15 06:05"
     },
     {
       "ticket_id": "AUTO-006",
@@ -145,7 +145,7 @@
         "meeting-2026-03-14"
       ],
       "source": "Sprint Planning + Product Review \u2014 March 14 2026",
-      "generated_at": "2026-03-15 04:44"
+      "generated_at": "2026-03-15 06:05"
     },
     {
       "ticket_id": "AUTO-007",
@@ -168,7 +168,7 @@
         "meeting-2026-03-14"
       ],
       "source": "Sprint Planning + Product Review \u2014 March 14 2026",
-      "generated_at": "2026-03-15 04:44"
+      "generated_at": "2026-03-15 06:05"
     },
     {
       "ticket_id": "AUTO-008",
@@ -184,14 +184,14 @@
         }
       ],
       "due_date": "2026-03-17",
-      "context": "Based on James technical changelog. Only include v2.4 items -- onboarding redesign is NOT in this release. Deliver to Tom by Tuesday EOD.",
+      "context": "Based on James technical changelog. Only include v2.4 items. Deliver to Tom by Tuesday EOD.",
       "labels": [
         "auto-generated",
         "sprint-planning",
         "meeting-2026-03-14"
       ],
       "source": "Sprint Planning + Product Review \u2014 March 14 2026",
-      "generated_at": "2026-03-15 04:44"
+      "generated_at": "2026-03-15 06:05"
     }
   ]
 }
