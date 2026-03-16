@@ -39,9 +39,9 @@ DUE_DATE_SIGNALS = {
     "wednesday":   "wednesday",
     "thursday":    "thursday",
     "friday":      "friday",
-    "next week":   "next week",
     "two weeks":   "two weeks",
-    "this week":   "next week",
+    "next week":   "next week",
+    "this week":   "this week",
 }
 
 
@@ -68,18 +68,15 @@ def parse_assignee(line: str) -> str:
     Handles patterns like:
         - James: Fix the bug
         - Sarah + James: Spec the integration
-        - Tom can you send...
     """
     line_lower = line.lower()
-
-    # Check for joint assignments first (e.g. "Sarah + James")
     found = []
     for name in KNOWN_ATTENDEES:
         if name in line_lower:
             found.append(name)
 
     if len(found) >= 2:
-        return " ".join(found)
+        return " + ".join(found)
     elif len(found) == 1:
         return found[0]
     return "unassigned"
@@ -88,12 +85,14 @@ def parse_assignee(line: str) -> str:
 def parse_due_hint(line: str) -> str:
     """
     Extracts a due date hint from an action item line.
-    Returns the most specific signal found, defaulting to 'next week'.
+    Checks longer phrases first to avoid partial matches
+    (e.g. 'two weeks' before 'week', 'next week' before 'week').
     """
     line_lower = line.lower()
-    for signal, hint in DUE_DATE_SIGNALS.items():
+    # Sort by length descending so longer phrases match first
+    for signal in sorted(DUE_DATE_SIGNALS, key=len, reverse=True):
         if signal in line_lower:
-            return hint
+            return DUE_DATE_SIGNALS[signal]
     return "next week"
 
 
@@ -103,15 +102,43 @@ def clean_action_text(line: str) -> str:
     from an action item line to produce a clean summary.
     """
     # Remove leading bullets and dashes
-    line = re.sub(r"^[\-\*\•]\s*", "", line.strip())
+    line = re.sub(r"^[\-\*\u2022]\s*", "", line.strip())
 
-    # Remove "Name:" or "Name +" prefix patterns
+    # Remove "Name:" or "Name + Name:" prefix patterns
     line = re.sub(
-        r"^([A-Z][a-z]+\s*[\+&]?\s*[A-Z]?[a-z]*\s*):\s*",
+        r"^([A-Z][a-z]+(\s*[\+&]\s*[A-Z][a-z]+)*\s*):\s*",
         "",
         line
     )
     return line.strip()
+
+
+def join_continuation_lines(lines: list) -> list:
+    """
+    Merges continuation lines into their parent action item.
+    A continuation line is one that does NOT start with a bullet/dash
+    and does NOT start with a known assignee name followed by a colon.
+
+    Example -- this two-line entry in the recap:
+        - Tom: Send holding message to Harlow Logistics, Meridian Technologies,
+          Northgate Financial today
+    ...should become a single item, not two.
+    """
+    bullet_pattern = re.compile(r"^[\-\*\u2022]\s*")
+    assignee_pattern = re.compile(
+        r"^([A-Z][a-z]+(\s*[\+&]\s*[A-Z][a-z]+)*\s*):",
+        re.IGNORECASE
+    )
+
+    merged = []
+    for line in lines:
+        is_new_item = bullet_pattern.match(line) or assignee_pattern.match(line)
+        if is_new_item or not merged:
+            merged.append(line)
+        else:
+            # Continuation -- append to previous item with a space
+            merged[-1] = merged[-1] + " " + line.strip()
+    return merged
 
 
 def parse_transcript(transcript_path: str) -> list:
@@ -136,14 +163,17 @@ def parse_transcript(transcript_path: str) -> list:
         print("  [parser] In production, Claude API would parse the full transcript.")
         return []
 
-    lines = [l.strip() for l in recap.splitlines() if l.strip()]
+    raw_lines = [l.strip() for l in recap.splitlines() if l.strip()]
+
+    # Merge continuation lines before processing
+    lines = join_continuation_lines(raw_lines)
+
     action_items = []
 
     for line in lines:
-        # Skip empty lines and section headers
+        # Skip short lines and section headers
         if not line or len(line) < 10:
             continue
-        # Skip lines that look like headers rather than action items
         if line.isupper():
             continue
 
@@ -179,7 +209,6 @@ def validate_extraction(parsed: list, expected_count: int) -> dict:
 
 
 if __name__ == "__main__":
-    # ── DEMO: run parser standalone ──
     import sys
     transcript_path = sys.argv[1] if len(sys.argv) > 1 else "meeting_transcript.txt"
 
@@ -194,11 +223,11 @@ if __name__ == "__main__":
         print(f"  Match rate      : {validation['match_rate']}%")
         print(f"  Status          : {validation['status']}\n")
 
-        print(f"{'#':<4} {'Assignee':<18} {'Due':<12} Summary")
-        print("-" * 80)
+        print(f"{'#':<4} {'Assignee':<22} {'Due':<12} Summary")
+        print("-" * 84)
         for i, item in enumerate(items, 1):
-            summary = item["raw"][:52] + "..." if len(item["raw"]) > 52 else item["raw"]
-            print(f"{i:<4} {item['assignee_hint']:<18} {item['due_hint']:<12} {summary}")
+            summary = item["raw"][:48] + "..." if len(item["raw"]) > 48 else item["raw"]
+            print(f"{i:<4} {item['assignee_hint']:<22} {item['due_hint']:<12} {summary}")
     else:
         print("No action items extracted.")
         print("Ensure the transcript contains an ACTION ITEMS RECAP section.")
