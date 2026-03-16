@@ -1,0 +1,16 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+.env
+
+# Generated pipeline output (run locally, not committed)
+jira_v2_production_ready.json
+
+# Dashboard output
+outputs/
+
+# Editor / OS
+.DS_Store
+.vscode/
+*.swp
