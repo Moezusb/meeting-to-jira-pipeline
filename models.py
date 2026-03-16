@@ -18,7 +18,7 @@ class JiraTicket(BaseModel):
     issue_type: str = Field(..., pattern="^(Bug|Task|Story)$")
     priority: str = Field(..., pattern="^(Highest|High|Medium|Low)$")
     assignees: List[dict]
-    due_date: str
+    due_date: str = Field(..., pattern=r"^\d{4}-\d{2}-\d{2}$")
     context: str
     labels: List[str] = []
     revenue_risk: bool = False
