@@ -24,11 +24,11 @@ from typing import Optional
 # ─────────────────────────────────────────────
 
 KNOWN_ATTENDEES = {
-    "james":  "james",
-    "priya":  "priya",
-    "tom":    "tom",
-    "aisha":  "aisha",
-    "sarah":  "sarah",
+    "james",
+    "priya",
+    "tom",
+    "aisha",
+    "sarah",
 }
 
 # Due date keywords the parser looks for
@@ -70,10 +70,7 @@ def parse_assignee(line: str) -> str:
         - Sarah + James: Spec the integration
     """
     line_lower = line.lower()
-    found = []
-    for name in KNOWN_ATTENDEES:
-        if name in line_lower:
-            found.append(name)
+    found = [name for name in KNOWN_ATTENDEES if name in line_lower]
 
     if len(found) >= 2:
         return " + ".join(found)
