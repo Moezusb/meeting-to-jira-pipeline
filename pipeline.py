@@ -5,17 +5,23 @@ Reads a meeting transcript, extracts action items, classifies
 and prioritizes each one, and outputs structured Jira-ready tickets
 as JSON -- with a visual summary chart.
 
+Two extraction modes:
+  --mode parsed   : extract action items directly from transcript (default)
+  --mode hardcoded: use the curated action list (more precise, for demos)
+
 Author : Mohamed Bah
 Stack  : Python, JSON, Matplotlib
 """
 
 import json
 import os
-import re
+import sys
 from collections import Counter
 from datetime import datetime, timedelta
 
 import matplotlib.pyplot as plt
+
+from transcript_parser import parse_transcript, validate_extraction
 
 
 # ─────────────────────────────────────────────
@@ -64,70 +70,13 @@ TYPE_COLORS = {
 
 
 # ─────────────────────────────────────────────
-# CLASSIFICATION HELPERS
+# CURATED ACTION ITEMS
+# Used in --mode hardcoded for precise demos.
+# In production this list is replaced by the
+# transcript_parser output (or a Claude API call).
 # ─────────────────────────────────────────────
 
-def detect_priority(text: str) -> str:
-    text_lower = text.lower()
-    if any(s in text_lower for s in HIGH_PRIORITY_SIGNALS):
-        return "High"
-    if any(s in text_lower for s in LOW_PRIORITY_SIGNALS):
-        return "Low"
-    return "Medium"
-
-
-def detect_ticket_type(text: str) -> str:
-    text_lower = text.lower()
-    if any(w in text_lower for w in ["bug", "fix", "broken", "truncat", "error"]):
-        return "bug"
-    if any(w in text_lower for w in ["automat", "integration", "sync", "confluence", "zendesk-to-jira"]):
-        return "automation"
-    if any(w in text_lower for w in ["handoff", "design", "finalize", "deliver"]):
-        return "handoff"
-    if any(w in text_lower for w in ["release", "changelog", "release notes"]):
-        return "release"
-    return "task"
-
-
-def extract_assignees(hint: str) -> list:
-    hint_lower = hint.lower()
-    if "sarah" in hint_lower and "james" in hint_lower:
-        return [ASSIGNEE_MAP["sarah"], ASSIGNEE_MAP["james"]]
-    for key, val in ASSIGNEE_MAP.items():
-        if key in hint_lower:
-            return [val]
-    return [{"name": "Unassigned", "role": "TBD", "jira_id": "unassigned"}]
-
-
-def parse_due_date(hint: str) -> str:
-    hint_lower = hint.lower()
-    today = datetime.today()
-    offsets = {
-        "today":     0,
-        "monday":    (0 - today.weekday()) % 7 or 7,
-        "tuesday":   (1 - today.weekday()) % 7 or 7,
-        "wednesday": (2 - today.weekday()) % 7 or 7,
-        "thursday":  (3 - today.weekday()) % 7 or 7,
-        "friday":    (4 - today.weekday()) % 7 or 7,
-    }
-    for keyword, days in offsets.items():
-        if keyword in hint_lower:
-            return (today + timedelta(days=days)).strftime("%Y-%m-%d")
-    if "next week" in hint_lower or "two weeks" in hint_lower:
-        return (today + timedelta(weeks=2)).strftime("%Y-%m-%d")
-    return (today + timedelta(weeks=1)).strftime("%Y-%m-%d")
-
-
-# ─────────────────────────────────────────────
-# ACTION ITEMS
-# Extracted from the meeting transcript ACTION
-# ITEMS RECAP section. In a production system
-# this extraction step would be handled by an
-# LLM API call (e.g. Claude) parsing the full
-# transcript text automatically.
-# ─────────────────────────────────────────────
-
-RAW_ACTIONS = [
+CURATED_ACTIONS = [
     {
         "raw":           "Fix CSV export truncation bug, staging by Wednesday EOD",
         "assignee_hint": "james",
@@ -180,6 +129,61 @@ RAW_ACTIONS = [
 
 
 # ─────────────────────────────────────────────
+# CLASSIFICATION HELPERS
+# ─────────────────────────────────────────────
+
+def detect_priority(text: str) -> str:
+    text_lower = text.lower()
+    if any(s in text_lower for s in HIGH_PRIORITY_SIGNALS):
+        return "High"
+    if any(s in text_lower for s in LOW_PRIORITY_SIGNALS):
+        return "Low"
+    return "Medium"
+
+
+def detect_ticket_type(text: str) -> str:
+    text_lower = text.lower()
+    if any(w in text_lower for w in ["bug", "fix", "broken", "truncat", "error"]):
+        return "bug"
+    if any(w in text_lower for w in ["automat", "integration", "sync", "confluence", "zendesk-to-jira"]):
+        return "automation"
+    if any(w in text_lower for w in ["handoff", "design", "finalize", "deliver"]):
+        return "handoff"
+    if any(w in text_lower for w in ["release", "changelog", "release notes"]):
+        return "release"
+    return "task"
+
+
+def extract_assignees(hint: str) -> list:
+    hint_lower = hint.lower()
+    if "sarah" in hint_lower and "james" in hint_lower:
+        return [ASSIGNEE_MAP["sarah"], ASSIGNEE_MAP["james"]]
+    for key, val in ASSIGNEE_MAP.items():
+        if key in hint_lower:
+            return [val]
+    return [{"name": "Unassigned", "role": "TBD", "jira_id": "unassigned"}]
+
+
+def parse_due_date(hint: str) -> str:
+    hint_lower = hint.lower()
+    today  = datetime.today()
+    offsets = {
+        "today":     0,
+        "monday":    (0 - today.weekday()) % 7 or 7,
+        "tuesday":   (1 - today.weekday()) % 7 or 7,
+        "wednesday": (2 - today.weekday()) % 7 or 7,
+        "thursday":  (3 - today.weekday()) % 7 or 7,
+        "friday":    (4 - today.weekday()) % 7 or 7,
+    }
+    for keyword, days in offsets.items():
+        if keyword in hint_lower:
+            return (today + timedelta(days=days)).strftime("%Y-%m-%d")
+    if "next week" in hint_lower or "two weeks" in hint_lower:
+        return (today + timedelta(weeks=2)).strftime("%Y-%m-%d")
+    return (today + timedelta(weeks=1)).strftime("%Y-%m-%d")
+
+
+# ─────────────────────────────────────────────
 # PIPELINE
 # ─────────────────────────────────────────────
 
@@ -188,7 +192,7 @@ def build_tickets(actions: list) -> list:
     for i, action in enumerate(actions, 1):
         ticket_type = detect_ticket_type(action["raw"])
         type_config = TICKET_TYPE_MAP[ticket_type]
-        priority    = detect_priority(action["raw"] + " " + action["context"])
+        priority    = detect_priority(action["raw"] + " " + action.get("context", ""))
         assignees   = extract_assignees(action["assignee_hint"])
         due_date    = parse_due_date(action["due_hint"])
 
@@ -200,7 +204,7 @@ def build_tickets(actions: list) -> list:
             "status":       "To Do",
             "assignees":    assignees,
             "due_date":     due_date,
-            "context":      action["context"],
+            "context":      action.get("context", ""),
             "labels":       ["auto-generated", "sprint-planning", "meeting-2026-03-14"],
             "source":       "Sprint Planning + Product Review — March 14 2026",
             "generated_at": datetime.now().strftime("%Y-%m-%d %H:%M"),
@@ -210,7 +214,7 @@ def build_tickets(actions: list) -> list:
 
 def save_json(tickets: list, path: str) -> None:
     output = {
-        "pipeline_version":  "1.0",
+        "pipeline_version":  "1.1",
         "source_transcript": TRANSCRIPT_FILE,
         "generated_at":      datetime.now().strftime("%Y-%m-%d %H:%M"),
         "total_tickets":     len(tickets),
@@ -218,7 +222,7 @@ def save_json(tickets: list, path: str) -> None:
     }
     with open(path, "w") as f:
         json.dump(output, f, indent=2)
-    print(f"JSON saved: {path} ({len(tickets)} tickets)")
+    print(f"  JSON saved   : {path} ({len(tickets)} tickets)")
 
 
 def save_chart(tickets: list, path: str) -> None:
@@ -247,7 +251,6 @@ def save_chart(tickets: list, path: str) -> None:
         fontsize=13, fontweight="bold", y=1.02,
     )
 
-    # Left: ticket table
     ax1 = axes[0]
     ax1.axis("off")
     table = ax1.table(
@@ -277,7 +280,6 @@ def save_chart(tickets: list, path: str) -> None:
             )
     ax1.set_title("Generated Tickets", fontsize=11, fontweight="bold", pad=12)
 
-    # Right: breakdown charts
     axes[1].axis("off")
     ax_pri  = fig.add_axes([0.55, 0.55, 0.2,  0.35])
     ax_type = fig.add_axes([0.78, 0.55, 0.2,  0.35])
@@ -311,21 +313,22 @@ def save_chart(tickets: list, path: str) -> None:
     ax_asgn.spines["top"].set_visible(False)
     ax_asgn.spines["right"].set_visible(False)
     for i, (k, v) in enumerate(asgn_counts.items()):
-        ax_asgn.text(v + 0.05, i, str(v), va="center", fontsize=8, color="#003314", fontweight="bold")
+        ax_asgn.text(v + 0.05, i, str(v), va="center", fontsize=8,
+                     color="#003314", fontweight="bold")
 
     plt.savefig(path, dpi=150, bbox_inches="tight")
     plt.close()
-    print(f"Chart saved: {path}")
+    print(f"  Chart saved  : {path}")
 
 
 def print_summary(tickets: list) -> None:
-    print(f"\nPipeline complete. {len(tickets)} tickets extracted.\n")
-    print(f"{'ID':<12} {'Type':<10} {'Priority':<10} {'Due':<14} {'Assignee':<22} Summary")
+    print(f"\n{'ID':<12} {'Type':<10} {'Priority':<10} {'Due':<14} {'Assignee':<22} Summary")
     print("-" * 100)
     for t in tickets:
         assignee = t["assignees"][0]["name"] if len(t["assignees"]) == 1 else "Sarah + James"
         summary  = t["summary"][:45] + "..." if len(t["summary"]) > 45 else t["summary"]
-        print(f"{t['ticket_id']:<12} {t['issue_type']:<10} {t['priority']:<10} {t['due_date']:<14} {assignee:<22} {summary}")
+        print(f"{t['ticket_id']:<12} {t['issue_type']:<10} {t['priority']:<10} "
+              f"{t['due_date']:<14} {assignee:<22} {summary}")
 
 
 # ─────────────────────────────────────────────
@@ -333,7 +336,40 @@ def print_summary(tickets: list) -> None:
 # ─────────────────────────────────────────────
 
 if __name__ == "__main__":
-    tickets = build_tickets(RAW_ACTIONS)
+    mode = "parsed"
+    if "--mode" in sys.argv:
+        idx  = sys.argv.index("--mode")
+        mode = sys.argv[idx + 1] if idx + 1 < len(sys.argv) else "parsed"
+
+    print("=" * 55)
+    print("  MEETING TO JIRA PIPELINE")
+    print("=" * 55)
+    print(f"\n  Mode         : {mode}")
+    print(f"  Transcript   : {TRANSCRIPT_FILE}\n")
+
+    if mode == "hardcoded":
+        print("  Using curated action list.\n")
+        actions = CURATED_ACTIONS
+    else:
+        print("  Parsing transcript directly...\n")
+        actions = parse_transcript(TRANSCRIPT_FILE)
+
+        if not actions:
+            print("  Parser returned no results. Falling back to curated list.\n")
+            actions = CURATED_ACTIONS
+        else:
+            validation = validate_extraction(actions, expected_count=8)
+            print(f"  Extraction validation:")
+            print(f"    Items extracted : {validation['extracted']}")
+            print(f"    Expected        : {validation['expected']}")
+            print(f"    Match rate      : {validation['match_rate']}%")
+            print(f"    Status          : {validation['status']}\n")
+
+    tickets = build_tickets(actions)
+
+    print(f"  Tickets generated: {len(tickets)}")
     save_json(tickets, OUTPUT_JSON)
     save_chart(tickets, OUTPUT_CHART)
     print_summary(tickets)
+
+    print("\n" + "=" * 55)
