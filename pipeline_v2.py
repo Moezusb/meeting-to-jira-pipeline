@@ -22,30 +22,38 @@ def enrich_with_revenue_intelligence(ticket_data):
     return ticket_data
 
 def process_pipeline():
-    # 1. Load your existing JSON output (simulating the ingestion)
-    with open('jira_tickets_output.json', 'r') as f:
-        data = json.load(f)
+    # MBA FIX: Check if the source file exists. If not, run the original parser logic.
+    source_file = 'jira_tickets_output.json'
+    
+    if not os.path.exists(source_file):
+        print(f"⚠️ {source_file} not found. Running original pipeline to generate source data...")
+        from pipeline import build_tickets
+        from transcript_parser import parse_transcript
+        actions = parse_transcript('meeting_transcript.txt')
+        tickets_to_process = build_tickets(actions)
+    else:
+        with open(source_file, 'r') as f:
+            data = json.load(f)
+            tickets_to_process = data['tickets']
     
     v2_tickets = []
     
-    for raw_ticket in data['tickets']:
-        # 2. Enrich with Revenue Intelligence
+    for raw_ticket in tickets_to_process:
+        # Enrich with Revenue Intelligence
         enriched_data = enrich_with_revenue_intelligence(raw_ticket)
         
-        # 3. Schema Enforcement (Pydantic validation)
-        # This ensures the data is "clean" before it ever hits Jira
+        # Schema Enforcement
         try:
             validated_ticket = JiraTicket(**enriched_data)
             v2_tickets.append(validated_ticket.model_dump())
         except Exception as e:
-            print(f"Validation Error for {raw_ticket['ticket_id']}: {e}")
+            print(f"Validation Error: {e}")
 
-    # 4. Save the "Production-Ready" Output
+    # Save the "Production-Ready" Output
     with open('jira_v2_production_ready.json', 'w') as f:
         json.dump(v2_tickets, f, indent=2)
     
     print(f"✅ V2 Pipeline Complete: {len(v2_tickets)} tickets validated.")
-    print(f"🔥 Revenue Risks Identified: {sum(1 for t in v2_tickets if t['revenue_risk'])}")
 
 if __name__ == "__main__":
     process_pipeline()
