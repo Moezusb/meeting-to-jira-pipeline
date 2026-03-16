@@ -93,12 +93,7 @@ def classify_labels(text: str) -> list:
 
 DAY_OFFSETS = {
     "today":      0,
-    "monday":     0,   # next occurrence calculated below
-    "tuesday":    1,
-    "wednesday":  2,
-    "thursday":   3,
-    "friday":     4,
-    "this week":  4,
+    "this week":  4,   # end of current week (Friday)
     "next week":  7,
     "two weeks":  14,
 }
@@ -262,11 +257,17 @@ def process_pipeline():
     print(f"  Output            : {OUTPUT_PATH}")
     print(f"{'=' * 60}\n")
 
+    # ARR at risk summary
+    arr_at_risk = sum(t["client_arr"] for t in validated_tickets if t.get("client_arr"))
+    if arr_at_risk:
+        print(f"  ARR at risk across escalated tickets: ${arr_at_risk:,}")
+        print()
+
     # Summary table
     print(f"{'ID':<10} {'Priority':<10} {'Type':<8} {'Assignee':<22} {'Due':<12} Summary")
     print("-" * 90)
     for t in validated_tickets:
-        assignee = ", ".join(a["name"] for a in t["assignees"])
+        assignee = ", ".join(a["name"].strip().title() for a in t["assignees"])
         summary  = t["summary"][:36] + "..." if len(t["summary"]) > 36 else t["summary"]
         flag     = " [REVENUE]" if t["revenue_risk"] else ""
         print(f"{t['ticket_id']:<10} {t['priority']:<10} {t['issue_type']:<8} "
