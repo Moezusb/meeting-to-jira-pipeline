@@ -1,0 +1,44 @@
+{
+  "clients": [
+    {
+      "name": "Harlow Logistics",
+      "arr": 120000,
+      "tier": "Enterprise",
+      "health_score": 42,
+      "status": "At-Risk",
+      "csm": "Tom Bergmann"
+    },
+    {
+      "name": "Meridian Technologies",
+      "arr": 98000,
+      "tier": "Enterprise",
+      "health_score": 55,
+      "status": "At-Risk",
+      "csm": "Tom Bergmann"
+    },
+    {
+      "name": "Northgate Financial",
+      "arr": 85000,
+      "tier": "Enterprise",
+      "health_score": 61,
+      "status": "Watch",
+      "csm": "Tom Bergmann"
+    },
+    {
+      "name": "Pinnacle Health",
+      "arr": 74000,
+      "tier": "Mid-Market",
+      "health_score": 78,
+      "status": "Healthy",
+      "csm": "Sarah Chen"
+    },
+    {
+      "name": "Crestview Partners",
+      "arr": 55000,
+      "tier": "Mid-Market",
+      "health_score": 82,
+      "status": "Healthy",
+      "csm": "Sarah Chen"
+    }
+  ]
+}
