@@ -1,103 +1,168 @@
-MEETING TRANSCRIPT
-Date: March 14, 2026
-Meeting Type: Sprint Planning + Product Review
-Attendees: Sarah Chen (Product Lead), James Okafor (Engineering Lead),
-           Priya Mehta (QA Lead), Tom Bergmann (Customer Success), 
-           Aisha Diallo (Design Lead)
-Duration: 52 minutes
+# Project Oracle V2: Revenue-Aware Action Engine
+
+**Converts raw meeting transcripts into validated, revenue-prioritized Jira tickets -- automatically escalating priority when at-risk enterprise clients are on the line.**
 
 ---
 
-SARAH: Okay let's get started. First thing -- the Zendesk integration bug 
-that Tom flagged last week. Tom, can you give us the latest?
+## The Problem
 
-TOM: Yeah so we have three enterprise clients who can't export their data 
-to CSV properly. The fields are getting truncated at 256 characters. 
-Harlow Logistics flagged it first, then Meridian Technologies and 
-Northgate Financial both reported the same thing yesterday. This is 
-blocking their weekly reporting runs. It's high priority.
+Standard meeting summaries fail because they strip business context.
 
-JAMES: I know what that is. It's the legacy export handler -- we never 
-updated the character limit when we moved to the new schema. I can have 
-a fix in by Wednesday. I'll need Priya to run regression on the export 
-module before we ship.
+A bug flagged in a sprint call might be classified as "Medium" priority by a keyword-matching tool. But if that bug is actively blocking a $120k enterprise client from running their weekly reports -- a client already showing churn signals -- it is not Medium. It is a drop-everything issue.
 
-PRIYA: Fine, I can do that Thursday morning. Just make sure the fix is 
-in the staging environment by Wednesday EOD.
-
-SARAH: Great. James own the fix, Priya owns regression, target is 
-Thursday EOD for staging sign-off. Tom can you send a holding message 
-to those three clients today?
-
-TOM: Already drafted, will send after this call.
-
-SARAH: Perfect. Second item -- the onboarding flow redesign. Aisha where 
-are we?
-
-AISHA: Designs are 90% done. The main blocker is we haven't agreed on 
-the empty state copy for the dashboard. I need a decision today otherwise 
-I can't hand off to James's team by Friday.
-
-SARAH: Let's just decide now. I want something that's directive, not 
-generic. Something like "Start your first trial -- add your protocol here." 
-Can we go with that direction?
-
-AISHA: Yes that works. I'll finalize the designs today and hand off 
-to James by Friday EOD.
-
-JAMES: We can start implementation next sprint if handoff lands Friday.
-
-SARAH: Good. Aisha owns handoff by Friday EOD, James implementation 
-starts next sprint. Third -- Priya, the automated test coverage report 
-you mentioned async. What do you need?
-
-PRIYA: I just need someone to set up a recurring Confluence page that 
-auto-populates with our test coverage metrics every two weeks. Right now 
-I'm doing it manually and it takes me two hours each time. If someone 
-can set up the automation I can give them the data source.
-
-SARAH: That's a perfect automation candidate. I'll take that one. 
-I'll have a working automation by end of next week.
-
-JAMES: While we're on automation -- we still don't have a proper 
-process for syncing Zendesk tickets to Jira when they hit a certain 
-severity threshold. Right now Tom is copying and pasting manually.
-
-TOM: It takes me about 45 minutes every morning. It's brutal.
-
-SARAH: Okay let's fix that. James and I will spec out the integration 
-this week. Aiming to have something built in two weeks.
-
-SARAH: Last item -- release notes for the v2.4 launch next Friday. 
-Tom, your team needs the client-facing version by Wednesday.
-
-TOM: Correct, Wednesday gives us time to review before it goes out.
-
-SARAH: James can you have the technical changelog to me by Monday EOD?
-
-JAMES: Yes, Monday EOD works.
-
-SARAH: Great. I'll transform it into the client-facing version Tuesday 
-and get it to Tom by Tuesday EOD. That gives him buffer.
-
-AISHA: Should I include the onboarding UI changes in the release notes 
-even if the full redesign isn't shipping yet?
-
-SARAH: Good catch -- no. Only include what's actually in v2.4. 
-The redesign is next sprint.
-
-SARAH: Okay I think that's everything. Let me recap the actions before 
-we close...
-
-ACTION ITEMS RECAP:
-- James: Fix CSV export truncation bug, staging by Wednesday EOD
-- Priya: Regression testing on export module, sign-off by Thursday EOD
-- Tom: Send holding message to Harlow Logistics, Meridian Technologies, Northgate Financial today
-- Aisha: Finalize onboarding designs, hand off to engineering Friday EOD
-- Sarah: Build Confluence auto-population automation by end of next week
-- Sarah + James: Spec Zendesk-to-Jira severity integration this week, build in two weeks
-- James: Technical changelog for v2.4 by Monday EOD
-- Sarah: Client-facing release notes by Tuesday EOD
+Project Oracle V2 closes that gap. It adds a **Revenue Intelligence Gate** to the extraction pipeline: every ticket is cross-referenced against a live database of high-value client health scores before it ever reaches the backlog.
 
 ---
-END OF TRANSCRIPT
+
+## What It Does
+
+| Step | Module | Output |
+|:--|:--|:--|
+| 1. Parse | `transcript_parser.py` | Structured action items from raw transcript |
+| 2. Classify | `pipeline_v2.py` | Issue type, base priority, labels, due dates |
+| 3. Enrich | Revenue Intelligence Gate | Client health cross-reference, ARR lookup |
+| 4. Escalate | Revenue Intelligence Gate | Priority override for At-Risk and Watch accounts |
+| 5. Validate | `models.py` (Pydantic) | Schema enforcement before export |
+| 6. Visualize | `v2_dashboard.py` | Three-panel strategic workload dashboard |
+
+---
+
+## Architecture
+
+```
+meeting_transcript.txt
+        │
+        ▼
+transcript_parser.py        ← Rule-based extraction layer
+        │                      In production: replaced by a single Claude API call
+        ▼
+pipeline_v2.py              ← Classification engine + Revenue Intelligence Gate
+        │
+        ├── high_value_clients.json   ← Revenue Bridge (CRM export)
+        │
+        ▼
+models.py                   ← Pydantic schema enforcement
+        │
+        ▼
+jira_v2_production_ready.json
+        │
+        ▼
+v2_dashboard.py             ← Strategic visualization
+        │
+        ▼
+outputs/v2_strategic_summary.png
+```
+
+---
+
+## Revenue Intelligence Gate
+
+The key differentiator in V2. After base classification, the pipeline scans each ticket against a structured high-value client database pulled from the Revenue Bridge.
+
+| Client Health | Pipeline Action |
+|:--|:--|
+| **At-Risk** | Priority overridden to `Highest` · Label `REVENUE-AT-RISK` appended |
+| **Watch** | Priority raised to `High` if not already escalated |
+| **Healthy** | No change |
+
+This mirrors how an experienced operations lead actually reads the room. The same bug is a different issue depending on who it affects. A keyword list breaks the moment a client is renamed. A structured Revenue Bridge updates automatically when the CRM does.
+
+---
+
+## Sample Output
+
+```
+============================================================
+  PROJECT ORACLE V2 -- REVENUE-AWARE ACTION ENGINE
+============================================================
+
+[1/4] Parsing transcript: meeting_transcript.txt
+  Extracted 8 action items.
+
+[2/4] Building and classifying tickets...
+  8 tickets classified.
+
+[3/4] Loading Revenue Bridge: high_value_clients.json
+  5 high-value clients loaded.
+  [ESCALATED] AUTO-003 -- Harlow Logistics (At-Risk) -> Highest
+  Revenue escalations: 1
+
+[4/4] Validating schema and exporting...
+
+============================================================
+  PIPELINE COMPLETE
+  Tickets validated : 8
+  Schema errors     : 0
+  Revenue escalated : 1
+  Output            : jira_v2_production_ready.json
+============================================================
+
+  ARR at risk across escalated tickets: $120,000
+
+ID         Priority   Type     Assignee          Due          Summary
+------------------------------------------------------------------------
+AUTO-001   Medium     Bug      James             2026-03-18   Fix CSV export truncation bug
+AUTO-002   Medium     Bug      Priya             2026-03-19   Regression testing on export module
+AUTO-003   Highest    Task     Tom               2026-03-14   Send holding message to Harlow Logistics [REVENUE]
+AUTO-004   Medium     Story    Aisha             2026-03-20   Finalize onboarding designs
+AUTO-005   Low        Story    Sarah, Tom        2026-03-21   Build Confluence auto-population automation
+AUTO-006   Low        Story    Sarah, James      2026-03-28   Spec Zendesk-to-Jira severity integration
+AUTO-007   Medium     Task     James             2026-03-16   Technical changelog for v2.4
+AUTO-008   Medium     Task     Sarah             2026-03-17   Client-facing release notes
+```
+
+---
+
+## How to Run
+
+**GitHub Codespaces (recommended)**
+
+```bash
+pip install -r requirements.txt
+python pipeline_v2.py
+python v2_dashboard.py
+```
+
+**Google Colab**
+
+```python
+!pip install -r requirements.txt
+!python pipeline_v2.py
+!python v2_dashboard.py
+
+from IPython.display import Image
+Image("outputs/v2_strategic_summary.png")
+```
+
+The dashboard renders as `outputs/v2_strategic_summary.png` -- three panels showing ticket priority distribution, revenue protection vs. standard ops split, and workload by assignee.
+
+---
+
+## Design Decisions
+
+**Why rule-based extraction instead of a direct API call?**
+`transcript_parser.py` is an intentional demonstration of the extraction logic a production LLM call would replace. It makes the architecture legible and lets the pipeline run without an API key. The tradeoff is explicit in the code comments.
+
+**Why Pydantic for schema enforcement?**
+Jira's API fails silently on malformed tickets. Running validation at the Python layer before export means every error is caught, surfaced with context, and debuggable. Zero schema errors in the output means zero sync failures in production.
+
+**Why a Revenue Bridge instead of keyword matching?**
+A hardcoded list of client names breaks the moment a client is renamed, acquired, or added. A structured JSON database -- standing in for a live CRM export -- means escalation logic stays accurate as the business changes.
+
+**Why separate pipeline and dashboard scripts?**
+The pipeline is designed to run headless in CI or scheduled jobs. The dashboard is an optional reporting layer that reads the JSON output independently. Keeping them separate means either can be swapped without touching the other.
+
+---
+
+## What I Would Build Next
+
+- Replace `transcript_parser.py` with a Claude API call capable of handling transcripts without a formal recap section
+- Pull `high_value_clients.json` from a live CRM export via Salesforce or HubSpot API
+- Add a direct Jira API integration to push validated tickets without the JSON intermediate step
+- Trigger a Slack alert on any `REVENUE-AT-RISK` escalation so the CS team is notified in real time
+
+---
+
+**Stack:** Python · Pydantic · Matplotlib · Pandas · JSON  
+**Author:** Mohamed Bah  
+**Status:** Production-grade · Codespaces-ready
