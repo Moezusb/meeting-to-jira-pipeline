@@ -29,7 +29,7 @@ The pipeline takes a raw meeting transcript as input and outputs a set of struct
 - Issue type (Bug, Task, Story)
 - Priority (High, Medium, Low) -- based on keyword signal detection
 - Assignee(s) with role and Jira user ID
-- Due date -- calculated from natural language references ("by Wednesday EOD", "end of next week")
+- Due date -- calculated dynamically from natural language references ("by Wednesday EOD", "end of next week")
 - Context -- the relevant discussion from the meeting that generated this ticket
 - Labels for traceability (`auto-generated`, `sprint-planning`, meeting date)
 
@@ -46,13 +46,15 @@ meeting_transcript.txt
 
          |
          v
-[ Stage 2: Action Extraction ]
-  Parse ACTION ITEMS RECAP section
-  (Production: LLM API call to extract from full transcript)
+[ Stage 2: Action Extraction — transcript_parser.py ]
+  Locate ACTION ITEMS RECAP section
+  Parse each line into: raw text, assignee hint, due date hint
+  Validate extraction against expected count
+  (Production: replace with Claude API call for unstructured transcripts)
 
          |
          v
-[ Stage 3: Classification ]
+[ Stage 3: Classification — pipeline.py ]
   detect_ticket_type()  -- Bug / Task / Story / Automation / Release
   detect_priority()     -- High / Medium / Low via keyword signals
   extract_assignees()   -- maps names to Jira user IDs
@@ -61,9 +63,16 @@ meeting_transcript.txt
          |
          v
 [ Stage 4: Output ]
-  jira_tickets_output.json  -- structured Jira-ready tickets
+  jira_tickets_output.json      -- structured Jira-ready tickets
   outputs/pipeline_summary.png  -- visual summary chart
 ```
+
+**Two extraction modes:**
+
+| Mode | How it works | When to use |
+|---|---|---|
+| `--mode parsed` (default) | `transcript_parser.py` reads the transcript directly | Any new transcript with a recap section |
+| `--mode hardcoded` | Uses the curated action list | Demos and reproducibility testing |
 
 ---
 
@@ -87,7 +96,8 @@ meeting_transcript.txt
 | AUTO-006 | Story | Medium | Sarah + James | 2 weeks out |
 | AUTO-007 | Task | Medium | James Okafor | Mon after meeting |
 | AUTO-008 | Task | Medium | Sarah Chen | Tue after meeting |
-```
+
+> **Note on the JSON file in this repo:** `jira_tickets_output.json` is a snapshot from the last pipeline run. Due dates are recalculated dynamically each time `pipeline.py` is executed, so running the pipeline will produce current dates.
 
 ---
 
@@ -120,17 +130,23 @@ meeting_transcript.txt
 
 ```bash
 # Install dependencies
-pip install matplotlib
+pip install -r requirements.txt
 
-# Run the pipeline
+# Run with transcript parser (default)
 python pipeline.py
 
-# Output files will appear in:
+# Run with curated action list (for demos)
+python pipeline.py --mode hardcoded
+
+# Run transcript parser standalone
+python transcript_parser.py meeting_transcript.txt
+
+# Output files:
 #   jira_tickets_output.json
 #   outputs/pipeline_summary.png
 ```
 
-No local Python installation required -- all four cells can be run directly in [Google Colab](https://colab.research.google.com) by pasting the code from `pipeline.py` into a new notebook.
+No local Python installation required -- runs directly in [Google Colab](https://colab.research.google.com) or GitHub Codespaces.
 
 ---
 
@@ -140,19 +156,22 @@ No local Python installation required -- all four cells can be run directly in [
 The classification logic (ticket type, priority, assignee, due date) is deterministic and testable. Rule-based signals produce consistent, auditable results and require no API dependency or cost to run. This makes the pipeline reliable in CI/CD environments and easy to extend.
 
 **Where an LLM fits in production:**
-The action extraction step -- parsing a full unstructured transcript to identify action items -- is where an LLM API call (e.g. Claude) adds the most value. In production, Stage 2 would send the full transcript to Claude with a structured extraction prompt, receive JSON back, and feed it into the same classification pipeline. That swap is a single function replacement.
+The extraction step (`transcript_parser.py`) is where an LLM API call adds the most value. The current rule-based parser works well for structured transcripts with a formal recap section. A real-world transcript -- no recap, freeform discussion, multiple speakers -- requires semantic understanding that keyword matching cannot provide. In production, Stage 2 would send the full transcript to Claude with a structured extraction prompt, receive JSON back, and feed it into the same classification pipeline. That swap is a single function replacement.
+
+**Why two modes?**
+`--mode parsed` demonstrates the full pipeline including transcript extraction. `--mode hardcoded` provides a stable, reproducible baseline for demos and testing. Both modes feed into the same classification engine -- the only difference is how action items are sourced.
 
 **Why include context in every ticket?**
 Jira tickets without context create follow-up questions. Including the relevant discussion excerpt means assignees have everything they need without re-reading the transcript.
 
 **Natural language due dates:**
-Meeting participants say "by Wednesday EOD" and "end of next week" -- not ISO dates. The `parse_due_date()` function converts these to real dates relative to the meeting date, which is what Jira's API expects.
+Meeting participants say "by Wednesday EOD" and "end of next week" -- not ISO dates. The `parse_due_date()` function converts these to real dates relative to today, which is what Jira's API expects.
 
 ---
 
 ## [ 08. WHAT I WOULD BUILD NEXT ]
 
-- **Stage 2 LLM integration:** Replace the manual action list with a Claude API call that parses the full transcript automatically. The prompt is designed and documented -- the integration is a single function swap.
+- **Claude API integration:** Replace `transcript_parser.py`'s rule-based extraction with a Claude API call that handles unstructured transcripts, infers implicit action items, and returns structured JSON. The pipeline architecture is already designed for this -- it is a single function swap.
 - **Jira API write:** Add a `POST /rest/api/3/issue` call to push tickets directly into a live Jira board rather than exporting JSON.
 - **Zendesk trigger:** Connect this pipeline to a Zendesk webhook so that tickets above a severity threshold are automatically routed into Jira without any manual copy-paste.
 - **Slack notification:** Post the generated ticket summary to the relevant Slack channel immediately after the meeting ends.
