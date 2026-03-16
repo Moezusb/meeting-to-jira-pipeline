@@ -14,7 +14,6 @@ Author: Mohamed Bah
 import json
 import os
 import matplotlib.pyplot as plt
-import matplotlib.patches as mpatches
 import pandas as pd
 
 
@@ -147,14 +146,18 @@ def build_dashboard(df: pd.DataFrame, output_path: str) -> None:
         sorted_assignees = sorted(assignee_counts.items(), key=lambda x: x[1], reverse=True)
         names, counts = zip(*sorted_assignees)
 
+        # Color each assignee bar red if they own any revenue-flagged ticket
+        def assignee_has_revenue(name: str) -> bool:
+            return df[df["assignees"].apply(
+                lambda a: any(p["name"].strip().title() == name for p in a)
+            )]["revenue_risk"].any()
+
         bar_colors_3 = [
-            REVENUE_RED if df[df["assignees"].apply(
-                lambda a: any(p["name"].strip().title() == n for p in a)
-            )]["revenue_risk"].any() else FOREST_GREEN
+            REVENUE_RED if assignee_has_revenue(n) else FOREST_GREEN
             for n in names
         ]
 
-        hbars = ax3.barh(names, counts, color=FOREST_GREEN, height=0.55)
+        hbars = ax3.barh(names, counts, color=bar_colors_3, height=0.55)
         ax3.set_title("Workload by Assignee", fontsize=11, color=TEXT_LIGHT, pad=10)
         ax3.set_xlabel("Tickets Assigned", color=TEXT_MID, fontsize=9)
         ax3.set_xlim(0, max(counts) + 1.5)
