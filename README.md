@@ -166,5 +166,5 @@ The pipeline is designed to run headless in CI or scheduled jobs. The dashboard 
 ---
 
 **Stack:** Python · Pydantic · Matplotlib · Pandas · JSON  
-**Author:** Mohamed Bah  
+**Author:** Mohamed Bah | [LinkedIn](https://www.linkedin.com/in/bah-007700/)
 **Status:** Production-grade · Codespaces-ready
