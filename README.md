@@ -110,7 +110,9 @@ AUTO-006   Low        Story    Sarah, James      2026-03-28   Spec Zendesk-to-Ji
 AUTO-007   Medium     Task     James             2026-03-16   Technical changelog for v2.4
 AUTO-008   Medium     Task     Sarah             2026-03-17   Client-facing release notes
 ```
+### Strategic Dashboard
 
+![Project Oracle V2 Strategic Workload Analysis](assets/dashboard.png)
 ---
 
 ## How to Run
